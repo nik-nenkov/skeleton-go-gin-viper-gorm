@@ -18,14 +18,17 @@ var db *gorm.DB
 func main() {
 	var err error
 	// Connect to the database
-	dsn := "host=localhost user=postgres password=postgres dbname=mydatabase port=5432 sslmode=disable"
+	dsn := "host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Failed to connect to database")
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&Resource{})
+	err = db.AutoMigrate(&Resource{})
+	if err != nil {
+		return
+	}
 
 	// Set up Gin
 	r := gin.Default()
@@ -34,7 +37,10 @@ func main() {
 	r.PUT("/resources/:name", updateResource)
 	r.DELETE("/resources/:name", deleteResource)
 
-	r.Run() // By default, it serves on :8080
+	err = r.Run()
+	if err != nil {
+		return
+	} // By default, it serves on :8080
 }
 
 func getResource(c *gin.Context) {
